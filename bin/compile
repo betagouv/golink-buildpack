@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir>
+
+# Debug, echo every command
+if [[ -n "$BUILDPACK_DEBUG" ]]; then
+  set -x
+fi
+
+# Fail immediately on non-zero exit code.
+set -e
+# Fail immediately on non-zero exit code within a pipeline.
+set -o pipefail
+# Fail on undeclared variables.
+set -u
+
+echo "=====> Start golink"
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+ENV_DIR=$3
+basedir="$( cd -P "$( dirname "$0" )" && pwd )"
+BP_DIR=`cd $(dirname $0); cd ..; pwd`
+TMP_PATH="$BUILD_DIR/tmp"
+mkdir -p "${TMP_PATH}" "${TMP_PATH}/golink" "${CACHE_DIR}/dist"
+source "${BP_DIR}/bin/install_golink.sh"
+
+if [[ -f "$ENV_DIR/GOLINK_VERSION" ]]; then
+  GOLINK_VERSION=$(cat "$ENV_DIR/GOLINK_VERSION")
+else
+  GOLINK_VERSION="head/master"
+fi
+
+
+# install addons
+cd $BUILD_DIR
+fetch_golink_dist "${TMP_PATH}" "v${GOLINK_VERSION}"
+mv ${TMP_PATH}/GoGovSG-${GOLINK_VERSION}/* "${BUILD_DIR}"
+rm -rf $TMP_PATH
+# ./build.sh ${GOLINK_VERSION}
+echo "scalingo-golink-buildpack"
+
+cp $BP_DIR/.buildpacks $BUILD_DIR/.buildpacks
+cp $BP_DIR/scalingo.json $BUILD_DIR/scalingo.json
+# Use architecture of multi-buildpack to compose behavior.
+# https://github.com/Scalingo/multi-buildpack
+
+
+url=https://github.com/Scalingo/multi-buildpack
+branch=""
+dir=$(mktemp -t buildpackXXXXX)
+rm -rf $dir
+
+echo "=====> Downloading Buildpack: $url"
+
+if [[ "$url" =~ \.tgz$ ]] || [[ "$url" =~ \.tgz\? ]]; then
+  mkdir -p "$dir"
+  curl -s "$url" | tar xvz -C "$dir" >/dev/null 2>&1
+else
+  git clone $url $dir >/dev/null 2>&1
+fi
+cd $dir
+
+if [ "$branch" != "" ]; then
+  git checkout $branch >/dev/null 2>&1
+fi
+
+chmod -f +x $dir/bin/{detect,compile,release}
+
+framework=$($dir/bin/detect $1)
+
+if [ $? == 0 ]; then
+  echo "=====> Detected Framework: $framework"
+  $dir/bin/compile $BUILD_DIR $CACHE_DIR $ENV_DIR
+
+  if [ $? != 0 ]; then
+    exit 1
+  fi
+else
+  echo "scalingo-golink-buildpack `.buildpacks` not defined. Exiting."
+  exit 1
+fi
+
+rm -rf $dir

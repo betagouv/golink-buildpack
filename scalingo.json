@@ -1,0 +1,23 @@
+{
+    "name": "golink App",
+    "description": "golink",
+    "keywords": [
+      "golink"
+    ],
+    "env": {
+        "NEXTAUTH_SECRET": "secret",
+        "NEXTAUTH_URL": {
+          "description": "Replace HEROKU_APP_NAME with the name given to your app",
+          "value": "https://HEROKU_APP_NAME.herokuapp.com"
+        }
+    },
+    "addons": ["postgresql:postgresql-sandbox"],
+    "formation": {
+      "web": {
+        "amount": 1,
+        "size": "S"
+      }
+    },
+    "postdeploy": ""
+}
+
