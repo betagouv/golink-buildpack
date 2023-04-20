@@ -42,6 +42,8 @@ echo "scalingo-golink-buildpack"
 cp $BP_DIR/.buildpacks $BUILD_DIR/.buildpacks
 cp $BP_DIR/scalingo.json $BUILD_DIR/scalingo.json
 cp $BP_DIR/Procfile $BUILD_DIR/Procfile
+rm $BUILD_DIR/public/locales/gov/en/translation.json
+cp $BP_DIR/translation.json $BUILD_DIR/public/locales/gov/en/translation.json
 # Use architecture of multi-buildpack to compose behavior.
 # https://github.com/Scalingo/multi-buildpack
 
