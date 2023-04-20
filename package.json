@@ -30,6 +30,9 @@
       "type": "git",
       "url": "git+https://github.com/opengovsg/GoGovSG.git"
     },
+    "engine": {
+      "node": "16"
+    },
     "dependencies": {
       "@datadog/browser-rum": "^4.15.0",
       "@hapi/joi": "^17.1.1",
@@ -204,12 +207,10 @@
         "eslint --ext .ts,.tsx --no-eslintrc -c .eslintrc.json --fix"
       ]
     },
-    "engines": {
-        "node": "16"
-    },
     "config": {
       "commitizen": {
         "path": "./node_modules/cz-conventional-changelog"
       }
     }
   }
+  
